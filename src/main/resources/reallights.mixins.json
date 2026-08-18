@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "com.masonwp123.reallights.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [
+    "MixinGameRenderer",
+    "MixinRenderSystem",
+    "MixinParticleFeatureRenderer",
+    "MixinRenderPipelineBuilder"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
