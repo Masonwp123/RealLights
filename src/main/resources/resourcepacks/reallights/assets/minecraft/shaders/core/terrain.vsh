@@ -24,6 +24,6 @@ void main() {
 
     sphericalVertexDistance = fog_spherical_distance(pos);
     cylindricalVertexDistance = fog_cylindrical_distance(pos);
-    vertexColor = Color * (sample_lightmap(Sampler2, UV2) + mix_light(pos));
+    vertexColor = Color * mix_light(Sampler2, UV2, pos);
     texCoord0 = UV0;
 }

@@ -58,7 +58,7 @@ void main() {
     #endif
 
     #ifndef EMISSIVE
-    lightMapColor = sample_lightmap(Sampler2, UV2) + mix_light(Position);
+    lightMapColor = mix_light(Sampler2, UV2, Position);
     #endif
 
     #ifndef NO_OVERLAY

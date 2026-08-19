@@ -1,10 +1,15 @@
 package com.masonwp123.reallights.client.rendering;
 
+import com.masonwp123.reallights.client.RealLightsClient;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MappableRingBuffer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Items;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -38,14 +43,17 @@ public class RealLightingTexelBuffer implements AutoCloseable {
         // Ensure Data can be interpreted
         faceBuffer.order(ByteOrder.LITTLE_ENDIAN);
 
-        // TODO: Example torch light
-        Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
-        encodeLightingData(faceBuffer,
-                camera.position().toVector3f(),
-                14.f,
-                new Vector3f(1.f, 210.f/255.f, 155.f/255.f),
-                1.f
-        );
+        for (ItemEntity entity : RealLightsClient.ModBusEvents.lights) {
+            encodeLightingData(faceBuffer,
+                    entity.position().toVector3f(),
+                    14.f,
+                    new Vector3f(1.f, 210.f / 255.f, 155.f / 255.f),
+                    1.f
+            );
+        }
+
+        assert RealLightingUniform.uniform != null;
+        RealLightingUniform.uniform.num_lights = RealLightsClient.ModBusEvents.lights.size();
     }
 
     // TODO: use double, otherwise it will break at the world border

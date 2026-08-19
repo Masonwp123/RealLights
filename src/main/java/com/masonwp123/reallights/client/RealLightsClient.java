@@ -1,16 +1,25 @@
 package com.masonwp123.reallights.client;
 
 import com.masonwp123.reallights.RealLights;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
+import org.joml.Vector3f;
+
+import java.util.ArrayList;
 
 @Mod(value = RealLights.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = RealLights.MODID, value = Dist.CLIENT)
@@ -27,6 +36,22 @@ public class RealLightsClient {
                     false,
                     Pack.Position.TOP
             );
+        }
+
+        public static final ArrayList<ItemEntity> lights = new ArrayList<>();
+
+        @SubscribeEvent
+        public static void clientTick(ClientTickEvent.Post event) {
+            ClientLevel clientLevel = Minecraft.getInstance().level;
+            if (clientLevel != null) {
+                for (Entity entity : clientLevel.entitiesForRendering()) {
+                    if (entity instanceof ItemEntity itemEntity) {
+                        if (itemEntity.getItem().getItem().equals(Items.TORCH) && !lights.contains(itemEntity)) {
+                            lights.add(itemEntity);
+                        }
+                    }
+                }
+            }
         }
     }
 }

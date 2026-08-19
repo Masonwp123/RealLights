@@ -14,9 +14,11 @@ import java.nio.ByteBuffer;
 
 public class RealLightingUniform implements AutoCloseable {
     @Unique
-    private static final int UBO_SIZE = new Std140SizeCalculator().putVec3().get();
+    private static final int UBO_SIZE = new Std140SizeCalculator().putInt().putVec3().get();
     @Unique
     public final GpuBuffer buffer = RenderSystem.getDevice().createBuffer(() -> "Real Lighting UBO", GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST, UBO_SIZE);
+
+    public int num_lights = 0;
 
     @Nullable
     public static RealLightingUniform uniform;
@@ -25,6 +27,7 @@ public class RealLightingUniform implements AutoCloseable {
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         try (MemoryStack stack = MemoryStack.stackPush()) {
             ByteBuffer data = Std140Builder.onStack(stack, UBO_SIZE)
+                    .putInt(num_lights)
                     .putVec3(camera.position().toVector3f())
                     .get();
             RenderSystem.getDevice().createCommandEncoder().writeToBuffer(this.buffer.slice(), data);

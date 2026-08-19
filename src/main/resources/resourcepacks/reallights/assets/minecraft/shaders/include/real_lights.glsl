@@ -2,6 +2,7 @@
 
 // Four default layouts, shared, packed, std140, std430 (shared is default)
 layout(std140) uniform RealLightsUniform {
+    int numLights;
     vec3 cameraPos;
 };
 
@@ -54,15 +55,29 @@ RealLight getLight(int index) {
     return light;
 }
 
-vec4 mix_light(vec3 position) {
-    vec3 contribution = vec3(0.0);
-    for(int i = 0; i < 2; i++) {
+vec4 mix_light(sampler2D lightMap, ivec2 uv, vec3 position) {
+    vec3 contribution = vec3(0.0, 0.0, 0.0);
+    for (int i = 0; i < numLights; i++) {
         RealLight light = getLight(i);
 
-        vec3 lightPosition = ((light.position - cameraPos) - position);
-        float attenuation = clamp(1.0 - (length(lightPosition) / light.attenuation), 0.0, 1.0);
-        contribution = contribution + clamp(attenuation,0,1) * (light.color * light.intensity);
+        // Calculate position from the vertex position to the light
+        vec3 toLight = ((light.position - cameraPos) - position);
+
+        // Calculate the attenuation (falloff) of the light
+        float lightDistance = length(toLight);
+        float attenuation = max(0.0, 1.0 - (lightDistance / light.attenuation));
+        attenuation *= attenuation;
+
+        // Calculate the lights total contribution
+        vec3 lightContribution = light.color * attenuation * light.intensity;
+
+        // Calculate luminance and only apply light in darkness
+        float luminance = dot(contribution, vec3(0.2126, 0.7152, 0.0722));
+        contribution += lightContribution * (1.0 - luminance);
     }
-    contribution = clamp(contribution,0,1);
-    return vec4(contribution.r,contribution.g,contribution.b, 0.0);
+
+    // Add custom illumination to the darkness in lighting
+    vec4 lighting = sample_lightmap(lightMap, uv);
+    lighting.rgb += contribution * (1.0 - lighting.rgb);
+    return lighting;
 }
