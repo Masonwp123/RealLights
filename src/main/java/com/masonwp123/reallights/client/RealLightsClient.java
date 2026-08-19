@@ -1,6 +1,7 @@
 package com.masonwp123.reallights.client;
 
 import com.masonwp123.reallights.RealLights;
+import com.masonwp123.reallights.client.rendering.RealLightingUniform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
@@ -17,7 +18,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 
@@ -42,9 +42,13 @@ public class RealLightsClient {
 
         @SubscribeEvent
         public static void clientTick(ClientTickEvent.Post event) {
+            assert RealLightingUniform.uniform != null;
+            if (lights.size() >= RealLights.MAX_LIGHTS) return;
+
             ClientLevel clientLevel = Minecraft.getInstance().level;
             if (clientLevel != null) {
                 for (Entity entity : clientLevel.entitiesForRendering()) {
+                    if (lights.size() >= RealLights.MAX_LIGHTS) break;
                     if (entity instanceof ItemEntity itemEntity) {
                         if (itemEntity.getItem().getItem().equals(Items.TORCH) && !lights.contains(itemEntity)) {
                             lights.add(itemEntity);

@@ -1,30 +1,25 @@
 package com.masonwp123.reallights.client.rendering;
 
+import com.masonwp123.reallights.RealLights;
 import com.masonwp123.reallights.client.RealLightsClient;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MappableRingBuffer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.Items;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Unique;
 
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class RealLightingTexelBuffer implements AutoCloseable {
     @Unique
-    private static final int MAX_LIGHTS = 1024;
-    @Unique
     private static final int LIGHT_INFO_SIZE = 32; //Info can fit in two Vec4s (16 each)
 
     @Unique
-    private static final int UTB_SIZE = MAX_LIGHTS * LIGHT_INFO_SIZE;
+    private static final int UTB_SIZE = RealLights.MAX_LIGHTS * LIGHT_INFO_SIZE;
     @Unique
     public final MappableRingBuffer buffer = new MappableRingBuffer(() -> "Real Lighting UTB", GpuBuffer.USAGE_UNIFORM_TEXEL_BUFFER | GpuBuffer.USAGE_MAP_WRITE, UTB_SIZE);
 
@@ -47,8 +42,8 @@ public class RealLightingTexelBuffer implements AutoCloseable {
             encodeLightingData(faceBuffer,
                     entity.position().toVector3f(),
                     14.f,
-                    new Vector3f(1.f, 210.f / 255.f, 155.f / 255.f),
-                    1.f
+                    new Color(255, 210, 155),
+                    14.f
             );
         }
 
@@ -57,7 +52,7 @@ public class RealLightingTexelBuffer implements AutoCloseable {
     }
 
     // TODO: use double, otherwise it will break at the world border
-    private void encodeLightingData(ByteBuffer buf, Vector3f position, float attenuation, Vector3f color, float intensity) {
+    private void encodeLightingData(ByteBuffer buf, Vector3f position, float attenuation, Color color, float intensity) {
         // Texel 0
         buf.putFloat(position.x);
         buf.putFloat(position.y);
@@ -65,10 +60,10 @@ public class RealLightingTexelBuffer implements AutoCloseable {
         buf.putFloat(attenuation);
 
         // Texel 1
-        buf.putFloat(color.x);
-        buf.putFloat(color.y);
-        buf.putFloat(color.z);
-        buf.putFloat(intensity);
+        buf.putFloat(color.getRed() / 255.f);
+        buf.putFloat(color.getGreen() / 255.f);
+        buf.putFloat(color.getBlue() / 255.f);
+        buf.putFloat(intensity / 15.f);
     }
 
     @Override
