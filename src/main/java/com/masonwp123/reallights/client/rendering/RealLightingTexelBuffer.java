@@ -1,11 +1,11 @@
 package com.masonwp123.reallights.client.rendering;
 
 import com.masonwp123.reallights.RealLights;
+import com.masonwp123.reallights.client.RealLight;
 import com.masonwp123.reallights.client.RealLightsClient;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.renderer.MappableRingBuffer;
-import net.minecraft.world.entity.item.ItemEntity;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -38,21 +38,21 @@ public class RealLightingTexelBuffer implements AutoCloseable {
         // Ensure Data can be interpreted
         faceBuffer.order(ByteOrder.LITTLE_ENDIAN);
 
-        for (ItemEntity entity : RealLightsClient.ModBusEvents.lights) {
-            encodeLightingData(faceBuffer,
-                    entity.position().toVector3f(),
-                    14.f,
-                    new Color(255, 210, 155),
-                    14.f
-            );
+        for (RealLight light : RealLightsClient.getLights()) {
+            encodeLightingData(faceBuffer, light);
         }
 
         assert RealLightingUniform.uniform != null;
-        RealLightingUniform.uniform.num_lights = RealLightsClient.ModBusEvents.lights.size();
+        RealLightingUniform.uniform.num_lights = RealLightsClient.getLights().size();
     }
 
     // TODO: use double, otherwise it will break at the world border
-    private void encodeLightingData(ByteBuffer buf, Vector3f position, float attenuation, Color color, float intensity) {
+    private void encodeLightingData(ByteBuffer buf, RealLight light) {
+        Vector3f position = light.position().toVector3f();
+        float attenuation = light.properties().attenuation();
+        Color color = light.properties().color();
+        float intensity = light.properties().intensity();
+
         // Texel 0
         buf.putFloat(position.x);
         buf.putFloat(position.y);
