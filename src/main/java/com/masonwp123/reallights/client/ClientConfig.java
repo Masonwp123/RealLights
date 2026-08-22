@@ -6,8 +6,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import javax.annotation.Nonnull;
 import java.awt.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Optional;
 
 public final class ClientConfig {
     public static final ModConfigSpec SPEC;
@@ -31,25 +30,19 @@ public final class ClientConfig {
     }
 
     public static boolean containsIdentifier(Identifier identifier) {
-        AtomicBoolean contains = new AtomicBoolean(false);
-
-        ITEMS.get().forEach(str -> {
+        return ITEMS.get().stream().anyMatch(str -> {
             String[] items = str.split(",");
-            String id = items[0];
-
-            if (!contains.get() && id.equals(identifier.toString())) {
-                contains.set(true);
-            }
+            return items[0].equals(identifier.toString());
         });
-
-        return contains.get();
     }
 
     public static @Nonnull RealLight.Properties getIdentifierProperties(Identifier identifier) {
 
-        AtomicReference<RealLight.Properties> properties = new AtomicReference<>();
+        assert containsIdentifier(identifier);
 
-        ITEMS.get().forEach(str -> {
+        Optional<RealLight.Properties> properties = Optional.empty();
+
+        for (var str : ITEMS.get()) {
             String[] items = str.split(",");
             String id = items[0];
 
@@ -58,11 +51,11 @@ public final class ClientConfig {
                 Color color = new Color(Integer.parseInt(items[2].substring(1), 16));
                 float intensity = Float.parseFloat(items[3]);
 
-                properties.set(new RealLight.Properties(attenuation, color, intensity));
+                properties = Optional.of(new RealLight.Properties(attenuation, color, intensity));
             }
-        });
+        }
 
-        assert properties.get() != null;
+        assert properties.isPresent();
         return properties.get();
     }
 }

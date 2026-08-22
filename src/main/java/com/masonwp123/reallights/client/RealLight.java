@@ -13,7 +13,7 @@ public record RealLight(
         @Nullable Identifier identifier,
         @Nullable Vec3 position,
 
-        Properties properties) {
+        @Nonnull Properties properties) {
 
     public RealLight(@Nonnull Identifier identifier, @Nonnull Entity source) {
         this(source, identifier, null, ClientConfig.getIdentifierProperties(identifier));
