@@ -17,7 +17,6 @@ import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -28,7 +27,20 @@ public class EntitySource extends RealLightSource {
 
     @SubscribeEvent
     private static void onEntityAdded(EntityJoinLevelEvent event) {
+        // Don't waste time trying to add an item entity when it's data hasn't yet been syncronized
+        if (event.getEntity() instanceof ItemEntity) {
+            return;
+        }
+
         addEntity(event.getEntity());
+    }
+
+    // If an item entity is updated or changed, delete and readd it
+    public static void onItemEntityUpdated(ItemEntity entity) {
+        removeEntity(entity);
+        if (getSources(entity).findFirst().isEmpty()) {
+            addEntity(entity);
+        }
     }
 
     @SubscribeEvent
