@@ -67,8 +67,4 @@ public class ItemEquipmentSource extends EntitySource {
         Item item = stack.getItem();
         addEntity(getId(item), () -> new ItemEquipmentSource(slot, item, entity));
     }
-
-    protected static Identifier getId(Item item) {
-        return BuiltInRegistries.ITEM.getKey(item);
-    }
 }

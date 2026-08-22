@@ -8,6 +8,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
@@ -45,6 +46,11 @@ public class EntitySource extends RealLightSource {
             return;
         }
 
+        // Don't waste time trying to add an item frame when it's data hasn't yet been syncronized
+        if (event.getEntity() instanceof ItemFrame) {
+            return;
+        }
+
         addEntity(event.getEntity());
     }
 
@@ -53,6 +59,14 @@ public class EntitySource extends RealLightSource {
         removeEntity(entity);
         if (getSources(entity).findFirst().isEmpty()) {
             addEntity(entity);
+        }
+    }
+
+    public static void onItemFrameUpdated(ItemFrame entity) {
+        removeEntity(entity);
+        if (getSources(entity).findFirst().isEmpty()) {
+            Identifier id = getId(entity.getItem().getItem());
+            addEntity(id, () -> new EntitySource(id, entity));
         }
     }
 
@@ -101,6 +115,10 @@ public class EntitySource extends RealLightSource {
             }
             return false;
         });
+    }
+
+    protected static Identifier getId(Item item) {
+        return BuiltInRegistries.ITEM.getKey(item);
     }
 
     protected static Identifier getId(Entity entity) {
