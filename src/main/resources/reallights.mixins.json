@@ -8,7 +8,8 @@
     "MixinRenderSystem",
     "MixinParticleFeatureRenderer",
     "MixinRenderPipelineBuilder",
-    "MixinClientPacketListener"
+    "MixinClientPacketListener",
+    "MixinLivingEntity"
   ],
   "injectors": {
     "defaultRequire": 1
