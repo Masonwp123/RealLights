@@ -4,6 +4,7 @@ import com.masonwp123.reallights.RealLights;
 import com.masonwp123.reallights.client.ClientConfig;
 import com.masonwp123.reallights.client.RealLight;
 import com.masonwp123.reallights.client.RealLightSource;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
@@ -14,6 +15,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -24,6 +26,17 @@ import java.util.stream.Stream;
 public class EntitySource extends RealLightSource {
 
     private static final ArrayList<EntitySource> entities = new ArrayList<>();
+
+    // When the player leaves a level, remove all sources associated.
+    @SubscribeEvent
+    public static void onLevelUnload(LevelEvent.Unload event) {
+        if (event.getLevel() instanceof ClientLevel) {
+            for (var source : entities) {
+                source.close();
+            }
+            entities.clear();
+        }
+    }
 
     @SubscribeEvent
     private static void onEntityAdded(EntityJoinLevelEvent event) {
