@@ -3,7 +3,6 @@
 // Four default layouts, shared, packed, std140, std430 (shared is default)
 layout(std140) uniform RealLightsUniform {
     int numLights;
-    vec3 cameraPos;
 };
 
 struct RealLight {
@@ -61,7 +60,7 @@ vec4 mix_light(sampler2D lightMap, ivec2 uv, vec3 position) {
         RealLight light = getLight(i);
 
         // Calculate position from the vertex position to the light
-        vec3 toLight = ((light.position - cameraPos) - position);
+        vec3 toLight = (light.position - position);
 
         // Calculate the attenuation (falloff) of the light
         float lightDistance = length(toLight);

@@ -6,6 +6,7 @@ import com.masonwp123.reallights.client.RealLightsClient;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.renderer.MappableRingBuffer;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -26,20 +27,20 @@ public class RealLightingTexelBuffer implements AutoCloseable {
     @Nullable
     public static RealLightingTexelBuffer texelBuffer;
 
-    public void update() {
+    public void update(Vec3 camerapos) {
         this.buffer.rotate();
 
         try (GpuBuffer.MappedView view = RenderSystem.getDevice().createCommandEncoder().mapBuffer(this.buffer.currentBuffer(), false, true)) {
-            this.buildLightingData(view.data());
+            this.buildLightingData(view.data(), camerapos);
         }
     }
 
-    private void buildLightingData(ByteBuffer faceBuffer) {
+    private void buildLightingData(ByteBuffer faceBuffer, Vec3 camerapos) {
         // Ensure Data can be interpreted
         faceBuffer.order(ByteOrder.LITTLE_ENDIAN);
 
         for (RealLight light : RealLightsClient.getLights()) {
-            encodeLightingData(faceBuffer, light);
+            encodeLightingData(faceBuffer, camerapos, light);
         }
 
         assert RealLightingUniform.uniform != null;
@@ -47,8 +48,8 @@ public class RealLightingTexelBuffer implements AutoCloseable {
     }
 
     // TODO: use double, otherwise it will break at the world border
-    private void encodeLightingData(ByteBuffer buf, RealLight light) {
-        Vector3f position = light.position().toVector3f();
+    private void encodeLightingData(ByteBuffer buf, Vec3 camerapos, RealLight light) {
+        Vector3f position = light.position().subtract(camerapos).toVector3f();
         float attenuation = light.properties().attenuation();
         Color color = light.properties().color();
         float intensity = light.properties().intensity();
