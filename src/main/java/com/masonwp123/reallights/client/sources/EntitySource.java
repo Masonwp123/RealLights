@@ -1,6 +1,5 @@
 package com.masonwp123.reallights.client.sources;
 
-import com.masonwp123.reallights.RealLights;
 import com.masonwp123.reallights.client.ClientConfig;
 import com.masonwp123.reallights.client.RealLight;
 import com.masonwp123.reallights.client.RealLightSource;
@@ -18,12 +17,11 @@ import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-@EventBusSubscriber(modid = RealLights.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = com.masonwp123.reallights.RealLights.MODID, value = Dist.CLIENT)
 public class EntitySource extends RealLightSource {
 
     private static final ArrayList<EntitySource> entities = new ArrayList<>();

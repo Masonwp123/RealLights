@@ -1,7 +1,6 @@
 package com.masonwp123.reallights.mixin;
 
-import com.masonwp123.reallights.client.rendering.RealLightingTexelBuffer;
-import com.masonwp123.reallights.client.rendering.RealLightingUniform;
+import com.masonwp123.reallights.client.rendering.RealLightsRenderObjects;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.state.GameRenderState;
@@ -21,17 +20,20 @@ public class MixinGameRenderer {
 
     @Inject(method = "<clinit>", at = @At("HEAD"))
     private static void GameRenderer(CallbackInfo ci) {
-        RealLightingUniform.uniform = new RealLightingUniform();
-        RealLightingTexelBuffer.texelBuffer = new RealLightingTexelBuffer();
+        RealLightsRenderObjects.object = new RealLightsRenderObjects();
     }
 
     @Inject(method = "render", at = @At("HEAD"))
     private void render(DeltaTracker deltaTracker, boolean advanceGameTime, CallbackInfo ci) {
-        if (RealLightingUniform.uniform != null) {
-            RealLightingUniform.uniform.update();
+        if (RealLightsRenderObjects.object != null) {
+            RealLightsRenderObjects.object.update(this.gameRenderState.levelRenderState.cameraRenderState.pos);
         }
-        if (RealLightingTexelBuffer.texelBuffer != null) {
-            RealLightingTexelBuffer.texelBuffer.update(this.gameRenderState.levelRenderState.cameraRenderState.pos);
+    }
+
+    @Inject(method = "close", at = @At("TAIL"))
+    private void close(CallbackInfo ci) {
+        if (RealLightsRenderObjects.object != null) {
+            RealLightsRenderObjects.object.close();
         }
     }
 }

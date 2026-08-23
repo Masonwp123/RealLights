@@ -1,13 +1,16 @@
 package com.masonwp123.reallights.client.rendering;
 
-import com.masonwp123.reallights.RealLights;
 import com.masonwp123.reallights.client.RealLight;
 import com.masonwp123.reallights.client.RealLightsClient;
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.Std140Builder;
+import com.mojang.blaze3d.buffers.Std140SizeCalculator;
+import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.renderer.MappableRingBuffer;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
+import org.lwjgl.system.MemoryStack;
 import org.spongepowered.asm.mixin.Unique;
 
 import javax.annotation.Nullable;
@@ -15,22 +18,35 @@ import java.awt.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class RealLightingTexelBuffer implements AutoCloseable {
+public class RealLightsRenderObjects implements AutoCloseable {
     @Unique
     private static final int LIGHT_INFO_SIZE = 32; //Info can fit in two Vec4s (16 each)
 
     @Unique
-    private static final int UTB_SIZE = RealLights.MAX_LIGHTS * LIGHT_INFO_SIZE;
+    private static final int UTB_SIZE = com.masonwp123.reallights.RealLights.MAX_LIGHTS * LIGHT_INFO_SIZE;
     @Unique
-    public final MappableRingBuffer buffer = new MappableRingBuffer(() -> "Real Lighting UTB", GpuBuffer.USAGE_UNIFORM_TEXEL_BUFFER | GpuBuffer.USAGE_MAP_WRITE, UTB_SIZE);
+    public final MappableRingBuffer texelBuffer = new MappableRingBuffer(() -> "Real Lighting UTB", GpuBuffer.USAGE_UNIFORM_TEXEL_BUFFER | GpuBuffer.USAGE_MAP_WRITE, UTB_SIZE);
+
+    @Unique
+    private static final int UBO_SIZE = new Std140SizeCalculator().putInt().get();
+    @Unique
+    public final GpuBuffer uniformBuffer = RenderSystem.getDevice().createBuffer(() -> "Real Lighting UBO", GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST, UBO_SIZE);
+
 
     @Nullable
-    public static RealLightingTexelBuffer texelBuffer;
+    public static RealLightsRenderObjects object;
 
     public void update(Vec3 camerapos) {
-        this.buffer.rotate();
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer data = Std140Builder.onStack(stack, UBO_SIZE)
+                    .putInt(RealLightsClient.getLights().size())
+                    .get();
+            RenderSystem.getDevice().createCommandEncoder().writeToBuffer(this.uniformBuffer.slice(), data);
+        }
 
-        try (GpuBuffer.MappedView view = RenderSystem.getDevice().createCommandEncoder().mapBuffer(this.buffer.currentBuffer(), false, true)) {
+        this.texelBuffer.rotate();
+
+        try (GpuBuffer.MappedView view = RenderSystem.getDevice().createCommandEncoder().mapBuffer(this.texelBuffer.currentBuffer(), false, true)) {
             this.buildLightingData(view.data(), camerapos);
         }
     }
@@ -42,9 +58,6 @@ public class RealLightingTexelBuffer implements AutoCloseable {
         for (RealLight light : RealLightsClient.getLights()) {
             encodeLightingData(faceBuffer, camerapos, light);
         }
-
-        assert RealLightingUniform.uniform != null;
-        RealLightingUniform.uniform.num_lights = RealLightsClient.getLights().size();
     }
 
     // TODO: use double, otherwise it will break at the world border
@@ -67,8 +80,14 @@ public class RealLightingTexelBuffer implements AutoCloseable {
         buf.putFloat(intensity / 15.f);
     }
 
+    public void bind(RenderPass renderPass) {
+        renderPass.setUniform("RealLightsUniform", uniformBuffer);
+        renderPass.setUniform("RealLightsTexelBuffer", texelBuffer.currentBuffer());
+    }
+
     @Override
     public void close() {
-        this.buffer.close();
+        this.uniformBuffer.close();
+        this.texelBuffer.close();
     }
 }
