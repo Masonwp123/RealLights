@@ -34,10 +34,9 @@ public class RealLightsClient {
 
     public static List<RealLight> getLights() { return List.copyOf(lights); }
 
-    public static boolean addLight(RealLight light) {
-        if (lights.size() >= RealLights.MAX_LIGHTS) return false;
+    public static void addLight(RealLight light) {
+        if (lights.size() >= RealLights.MAX_LIGHTS) return;
         lights.add(light);
-        return true;
     }
 
     public static void removeLight(RealLight light) {

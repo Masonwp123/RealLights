@@ -9,35 +9,25 @@ import javax.annotation.Nullable;
 import java.awt.*;
 
 public record RealLight(
-        @Nullable Entity source,
+        @Nonnull Entity source,
         @Nullable Identifier identifier,
-        @Nullable Vec3 position,
-
         @Nonnull Properties properties) {
 
     public RealLight(@Nonnull Identifier identifier, @Nonnull Entity source) {
-        this(source, identifier, null, ClientConfig.getIdentifierProperties(identifier));
+        this(source, identifier, ClientConfig.getIdentifierProperties(identifier));
     }
 
     public RealLight(@Nonnull Entity source, float attenuation, Color color, float intensity) {
-        this(source, null, null, new Properties(attenuation, color, intensity));
-    }
-
-    public RealLight(@Nonnull Vec3 position, float attenuation, Color color, float intensity) {
-        this(null, null, position, new Properties(attenuation, color, intensity));
+        this(source, null, new Properties(attenuation, color, intensity));
     }
 
     // Constructor to 'update' light properties
     public RealLight(@Nonnull RealLight light) {
-        this(light.source, light.identifier, light.position, ClientConfig.getIdentifierProperties(light.identifier));
+        this(light.source, light.identifier, ClientConfig.getIdentifierProperties(light.identifier));
     }
 
-    @Override
     public Vec3 position() {
-        if (this.source != null) {
-            return this.source.position();
-        }
-        return this.position;
+        return this.source.position();
     }
 
     public record Properties(float attenuation, Color color, float intensity) { }

@@ -22,12 +22,11 @@ import java.util.stream.Stream;
 public class ItemEquipmentSource extends EntitySource {
 
     private final EquipmentSlot slot;
-    private final Item item;
 
     private static final HashMap<EquipmentSlot, ItemStack> playerItems = new HashMap<>(EquipmentSlot.values().length);
 
     // Handle player client items
-    // There isn't a good way to handle this with an event, but doing it on tick should not be that slow.
+    // There isn't a good way to handle this with an event, but doing it on tick should be fine
     @SubscribeEvent
     public static void clientTick(ClientTickEvent.Post event) {
         LocalPlayer player = Minecraft.getInstance().player;
@@ -45,7 +44,6 @@ public class ItemEquipmentSource extends EntitySource {
     protected ItemEquipmentSource(EquipmentSlot slot, Item item, LivingEntity entity) {
         super(getId(item), entity);
         this.slot = slot;
-        this.item = item;
     }
 
     public static void onEntityEquipmentChange(LivingEntity entity, EquipmentSlot slot, ItemStack stack) {

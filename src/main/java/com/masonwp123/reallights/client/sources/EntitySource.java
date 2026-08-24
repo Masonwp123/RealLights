@@ -83,10 +83,7 @@ public class EntitySource extends RealLightSource {
     }
 
     protected static Stream<EntitySource> getSources(Entity entity) {
-        return entities.stream().filter(entitySource -> {
-            assert entitySource.light.source() != null;
-            return entitySource.light.source().equals(entity);
-        });
+        return entities.stream().filter(entitySource -> entitySource.light.source().equals(entity));
     }
 
     protected static void addEntity(Identifier identifier, Supplier<EntitySource> entitySource) {
