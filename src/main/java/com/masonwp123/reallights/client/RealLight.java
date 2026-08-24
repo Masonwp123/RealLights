@@ -27,6 +27,11 @@ public record RealLight(
         this(null, null, position, new Properties(attenuation, color, intensity));
     }
 
+    // Constructor to 'update' light properties
+    public RealLight(@Nonnull RealLight light) {
+        this(light.source, light.identifier, light.position, ClientConfig.getIdentifierProperties(light.identifier));
+    }
+
     @Override
     public Vec3 position() {
         if (this.source != null) {

@@ -31,9 +31,6 @@ public class RealLights {
     public static final int MAX_LIGHTS = 1024;
 
     public RealLights(ModContainer container) {
-        container.registerConfig(
-                ModConfig.Type.CLIENT,
-                ClientConfig.SPEC
-        );
+        ClientConfig.buildConfig(container);
     }
 }
